@@ -47,15 +47,12 @@
     //   return last element of the array
     // otherwise
     //   return an array that slices from n to end of array
-    if (n === 0) {
+    if (n <= 0) {
       return [];
-    } else if (n === undefined) {
-      return array[array.length - 1];
-    } else if (n > array.length - 1) {
+    } else if (n > array.length) {
       return array;
-    } else {
-      return array.slice(n, array.length);
     }
+    return n === undefined ? array[array.length - 1] : array.slice(n, array.length);
   };
 
   // Call iterator(value, key, collection) for each element of collection.
@@ -77,15 +74,12 @@
     //   value, key, and collection
 
     if (Array.isArray(collection)) {
-      for (var i = 0; i < collection.length; i += 1) {
-        var value = collection[i];
-        var index = i;
-        iterator(value, index, collection);
+      for (var i = 0; i < collection.length; i++) {
+        iterator(collection[i], i, collection);
       }
     } else if (typeof collection === 'object') {
       for (var key in collection) {
-        var value = collection[key];
-        iterator(value, key, collection);
+        iterator(collection[key], key, collection);
       }
     }
   };
@@ -121,13 +115,13 @@
     //   if the values pass the test, push values that pass to the array
     // return result array
     var result = [];
-    if (Array.isArray(collection)) {
-      _.each(collection, function (value, index) {
-        if (test(value)) {
-          result.push(value);
-        }
-      });
-    }
+
+    _.each(collection, function(item) {
+      if (test(item)) {
+        result.push(item);
+      }
+    });
+
     return result;
   };
   // Return all elements of an array that don't pass a truth test.
@@ -142,17 +136,9 @@
     //   iterate through the collection
     //   if the values don't pass the test, push values that pass to the array
     // return result array
-
-    var result = [];
-    if (Array.isArray(collection)) {
-      _.each(collection, function (value, index) {
-        if (!test(value)) {
-          result.push(value);
-        }
-      });
-    }
-    return result;
-
+    return _.filter(collection, function(item) {
+      return !test(item);
+    });
     // TIP: see if you can re-use _.filter() here, without simply
     // copying code in and modifying it
   };
@@ -170,18 +156,22 @@
     //  If iterator exists, then pass element through iterator
     //  If result does not have iterated element (or element if iterator does not exist), push element to result
     // Return result array
-    var comparative = [];
     var result = [];
-    if (Array.isArray(array)) {
-      _.each(array, function(value) {
-        var comparer = iterator !== undefined ? iterator(value) : value;
-        console.log(comparer);
-        if (!comparative.includes(comparer)) {
-          comparative.push(comparer);
-          result.push(value);
-        }
-      });
-    }
+    var mutated = {};
+
+    _.each(array, function(item) {
+      var currentIterator;
+      if (iterator) {
+        currentIterator = iterator(item);
+      } else {
+        currentIterator = item;
+      }
+      if (mutated[currentIterator] === undefined) {
+        mutated[currentIterator] = 1;
+        result.push(item);
+      }
+    });
+
     return result;
   };
 
@@ -262,16 +252,14 @@
     //   Otherwise, accumulator is equal to iterator with arguments of the
     //   accumulator and the value
     // Return accumulator
-
-    var firstPass = 1;
-    _.each(collection, function(value, index) {
-      if (accumulator === undefined && firstPass === 1) {
-        accumulator = value;
-        firstPass++;
+    _.each(collection, function(item, key) {
+      if (accumulator === undefined && key === 0) {
+        accumulator = item;
       } else {
-        accumulator = iterator(accumulator, value);
+        accumulator = iterator(accumulator, item);
       }
     });
+
     return accumulator;
   };
 
